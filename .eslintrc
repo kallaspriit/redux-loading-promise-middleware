@@ -1,0 +1,10 @@
+{
+    "extends": "airbnb",
+    "parser": "babel-eslint",
+    "rules": {
+        "indent": [2, "tab", { SwitchCase: 1 }],
+        "react/require-extension": "off"
+    },
+    "globals": {
+    }
+}
