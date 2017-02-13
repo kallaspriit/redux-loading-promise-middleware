@@ -2,6 +2,6 @@
     "extends": "sl",
     "env": {
         "node": true,
-        "mocha": true
+        "jest": true
     }
 }
