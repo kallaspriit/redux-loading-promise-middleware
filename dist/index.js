@@ -31,13 +31,11 @@ exports.default = function (_ref) {
 					error: null
 				}));
 			}, function (error) {
-				dispatch(_extends({}, action, {
+				return dispatch(_extends({}, action, {
 					payload: null,
 					isLoading: false,
 					error: error
 				}));
-
-				return Promise.reject(error);
 			});
 		};
 	};
