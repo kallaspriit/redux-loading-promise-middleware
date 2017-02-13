@@ -1,50 +1,36 @@
-export default function promiseMiddleware() {
-	return dispatch => (action) => {
-		const { payload, ...rest } = action;
+const isPromise = val =>
+	val && typeof val.then === 'function';
 
-		// check whether the payload looks like a promise
-		if (payload && typeof payload.then === 'function') {
-			dispatch({
-				...rest,
-				payload: {
-					isLoading: true,
-					error: null,
-				},
-			});
+export default ({ dispatch }) => next => (action) => {
+	if (!isPromise(action.payload)) {
+		return next(action);
+	}
 
-			payload.then(
-				(info) => {
-					dispatch({
-						...rest,
-						payload: {
-							isLoading: false,
-							error: null,
-							info,
-						},
-					});
-				},
-				(error) => {
-					dispatch({
-						...rest,
-						payload: {
-							isLoading: false,
-							error,
-							info: null,
-						},
-					});
-				},
-			);
-		} else {
-			// not a promise, just pass-through
-			dispatch(action);
-		}
-	};
-}
-
-export function getDefaultAsyncState(info = null) {
-	return {
-		isLoading: false,
+	dispatch({
+		...action,
+		payload: null,
+		isLoading: true,
 		error: null,
-		info,
-	};
-}
+	});
+
+	return action.payload.then(
+		payload => dispatch({
+			...action,
+			payload,
+			isLoading: false,
+			error: null,
+		}),
+		error => dispatch({
+			...action,
+			payload: null,
+			isLoading: false,
+			error,
+		}),
+	);
+};
+
+export const getDefaultAsyncState = (info = {}) => ({
+	isLoading: false,
+	error: null,
+	...info,
+});

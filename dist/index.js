@@ -6,60 +6,47 @@ Object.defineProperty(exports, "__esModule", {
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
-exports.default = promiseMiddleware;
-exports.getDefaultAsyncState = getDefaultAsyncState;
+var isPromise = function isPromise(val) {
+	return val && typeof val.then === 'function';
+};
 
-function _objectWithoutProperties(obj, keys) { var target = {}; for (var i in obj) { if (keys.indexOf(i) >= 0) continue; if (!Object.prototype.hasOwnProperty.call(obj, i)) continue; target[i] = obj[i]; } return target; }
-
-function promiseMiddleware() {
-	return function (dispatch) {
+exports.default = function (_ref) {
+	var dispatch = _ref.dispatch;
+	return function (next) {
 		return function (action) {
-			var payload = action.payload;
+			if (!isPromise(action.payload)) {
+				return next(action);
+			}
 
-			var rest = _objectWithoutProperties(action, ['payload']);
+			dispatch(_extends({}, action, {
+				payload: null,
+				isLoading: true,
+				error: null
+			}));
 
-			// check whether the payload looks like a promise
-
-
-			if (payload && typeof payload.then === 'function') {
-				dispatch(_extends({}, rest, {
-					payload: {
-						isLoading: true,
-						error: null
-					}
+			return action.payload.then(function (payload) {
+				return dispatch(_extends({}, action, {
+					payload: payload,
+					isLoading: false,
+					error: null
+				}));
+			}, function (error) {
+				dispatch(_extends({}, action, {
+					payload: null,
+					isLoading: false,
+					error: error
 				}));
 
-				payload.then(function (info) {
-					dispatch(_extends({}, rest, {
-						payload: {
-							isLoading: false,
-							error: null,
-							info: info
-						}
-					}));
-				}, function (error) {
-					dispatch(_extends({}, rest, {
-						payload: {
-							isLoading: false,
-							error: error,
-							info: null
-						}
-					}));
-				});
-			} else {
-				// not a promise, just pass-through
-				dispatch(action);
-			}
+				return Promise.reject(error);
+			});
 		};
 	};
-}
+};
 
-function getDefaultAsyncState() {
-	var info = arguments.length <= 0 || arguments[0] === undefined ? null : arguments[0];
-
-	return {
+var getDefaultAsyncState = exports.getDefaultAsyncState = function getDefaultAsyncState() {
+	var info = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+	return _extends({
 		isLoading: false,
-		error: null,
-		info: info
-	};
-}
+		error: null
+	}, info);
+};
