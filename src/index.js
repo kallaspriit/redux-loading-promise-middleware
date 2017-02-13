@@ -1,9 +1,6 @@
 export default function promiseMiddleware() {
-	return (dispatch) => (action) => {
-		const {
-			payload,
-			...rest,
-		} = action;
+	return dispatch => (action) => {
+		const { payload, ...rest } = action;
 
 		// check whether the payload looks like a promise
 		if (payload && typeof payload.then === 'function') {
@@ -35,7 +32,7 @@ export default function promiseMiddleware() {
 							info: null,
 						},
 					});
-				}
+				},
 			);
 		} else {
 			// not a promise, just pass-through
